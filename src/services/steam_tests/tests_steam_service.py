@@ -4,10 +4,10 @@ from typing import List
 
 import pytest
 
+from src.services.misc.dto import SkinRequestDTO
+from src.services.steam.resources.dto import SteamSkinResponseDTO
 
-from src.misc.dto import SkinRequestDTO, SteamSkinResponseDTO
 from src.misc.link_tools import Pager
-from src.services.misc.common_request_executor import CommonRequestExecutor
 from src.services.steam.steam_market_skin_data_retriever import SteamMarketSkinDataRetriever
 
 
@@ -23,8 +23,7 @@ def return_value():
 
 @pytest.fixture()
 def service():
-    request_executor = CommonRequestExecutor()
-    service = SteamMarketSkinDataRetriever(request_executor)
+    service = SteamMarketSkinDataRetriever()
     return service
 
 @pytest.mark.asyncio

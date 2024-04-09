@@ -6,7 +6,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram import types
 
-from src.db.bot_database import BotDatabase
+from src.database_app.database.context.bot_database_context import BotDatabaseContext
 from src.redis_controller import RedisController
 from src.telegram_bot_app.handlers import TgMsgHandler
 from src.telegram_bot_app.keyboard.keyboards import Keyboards
@@ -16,7 +16,7 @@ from src.telegram_bot_app.resources import constants
 
 class SettingHandler(TgMsgHandler):
     def __init__(
-            self, keyboards: Keyboards, database: BotDatabase, redis_controller: RedisController
+            self, keyboards: Keyboards, database: BotDatabaseContext, redis_controller: RedisController
     ) -> None:
         self._router = Router()
         self._database = database

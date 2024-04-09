@@ -2,18 +2,18 @@ import asyncio
 
 from typing import List
 
+import aiohttp
+
 from src.services.csm.links.csm_market_skin_asset_id_link import CsmMarketSkinAssetIdLink
 from src.services.csm.links.csm_market_skin_data_link import CsmMarketSkinDataLink
 from src.services.csm.parsers.csm_market_skin_asset_id_parser import CsmMarketSkinAssetIdParser
 from src.services.csm.parsers.csm_market_skin_data_parser import CsmMarketSkinDataParser
-from src.services.misc.common_request_executor import CommonRequestExecutor
 from src.services.csm.resources.dto import CsmSkinResponseDTO
 from src.services.misc.dto import SkinRequestDTO
 
 
 class CsmMarketSkinDataRetriever:
-    def __init__(self, request_executor: CommonRequestExecutor) -> None:
-        self._request_executor = request_executor
+    def __init__(self) -> None:
         self._headers = {
             'Accept': 'application/json, text/plain, */*',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -30,14 +30,23 @@ class CsmMarketSkinDataRetriever:
 
     async def _get_asset_ids(self, skin_dto: SkinRequestDTO, offset: int) -> List[int]:
         link = CsmMarketSkinAssetIdLink.create(skin_dto, limit=60, offset=offset)
-        response = await self._request_executor.get_response_json(link)
-        return CsmMarketSkinAssetIdParser.parse(response)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(link, headers=self._headers) as response:
+                json_response = await response.json()
+                return CsmMarketSkinAssetIdParser.parse(json_response)
 
     async def _get_skins(self, asset_id_list: List[int]) -> List[CsmSkinResponseDTO]:
         tasks = []
-        for asset_id in asset_id_list:
-            link = CsmMarketSkinDataLink.create(asset_id)
-            tasks.append(asyncio.create_task(self._request_executor.get_response_json(link)))
-        responses = await asyncio.gather(*tasks)
-        return [CsmMarketSkinDataParser.parse(response) for response in responses]
+        async with aiohttp.ClientSession() as session:
+            for asset_id in asset_id_list:
+                link = CsmMarketSkinDataLink.create(asset_id)
+                task = asyncio.create_task(self._get_skin_info_response(session, link))
+                tasks.append(task)
+            responses = await asyncio.gather(*tasks)
+            return [CsmMarketSkinDataParser.parse(response) for response in responses]
+
+    @staticmethod
+    async def _get_skin_info_response(session: aiohttp.ClientSession, link: str):
+        async with session.get(link) as response:
+            return await response.json()
 

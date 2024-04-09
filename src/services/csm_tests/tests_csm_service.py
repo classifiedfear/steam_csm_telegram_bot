@@ -3,11 +3,12 @@ from typing import List
 import pytest
 
 
-from src.services.csm import CsmService
-from src.misc.dto import CsmSkinResponseDTO, SkinRequestDTO
-from src.misc.exceptions import RequestException
+
 from src.misc.link_tools import Pager
-from src.services.misc.common_request_executor import CommonRequestExecutor
+from src.services.csm.csm_market_skin_data_retriever import CsmMarketSkinDataRetriever
+from src.services.csm.exceptions import RequestException
+from src.services.csm.resources.dto import CsmSkinResponseDTO
+from src.services.misc.dto import SkinRequestDTO
 
 
 @pytest.fixture
@@ -18,9 +19,8 @@ def ak_47_skin_dto():
 
 
 @pytest.fixture
-def service() -> CsmService:
-    request_executor = CommonRequestExecutor()
-    service = CsmService(request_executor)
+def service() -> CsmMarketSkinDataRetriever:
+    service = CsmMarketSkinDataRetriever()
     return service
 
 

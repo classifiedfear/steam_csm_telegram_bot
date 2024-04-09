@@ -1,8 +1,9 @@
 import asyncio
 from typing import List
 
+import aiohttp
+from fake_useragent import UserAgent
 
-from src.services.misc.common_request_executor import CommonRequestExecutor
 from src.services.misc.dto import SkinRequestDTO
 from src.services.steam.resources.dto import SteamSkinResponseDTO, ParsedSteamSkinDTO
 from src.services.steam.steam_market_skin_data_handler import SteamMarketSkinDataHandler
@@ -11,8 +12,7 @@ from src.services.steam.steam_market_skin_data_parser import SteamMarketSkinData
 
 
 class SteamMarketSkinDataRetriever:
-    def __init__(self, request_executor: CommonRequestExecutor):
-        self._request_executor = request_executor
+    def __init__(self):
         self._headers = {
             'Accept': 'text/javascript, text/html, application/xml, text/xml, */*',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -23,7 +23,8 @@ class SteamMarketSkinDataRetriever:
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Site': 'same-origin',
             'X-Prototype-Version': '1.7',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'user-agent': f'{UserAgent.random}'
             }
 
     async def get_market_skins(
@@ -35,8 +36,10 @@ class SteamMarketSkinDataRetriever:
     async def _get_steam_skins(
             self, skin_dto: SkinRequestDTO, start: int, count: int, currency: int) -> List[ParsedSteamSkinDTO]:
         link = ApiSteamMarketSkinDataLink.create(skin_dto, start=start, count=count, currency=currency)
-        response = await self._request_executor.get_response_json(link, headers=self._headers)
-        return SteamMarketSkinDataParser.parse(response)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(link, headers=self._headers) as response:
+                json_response = await response.json()
+                return SteamMarketSkinDataParser.parse(json_response)
 
     async def _get_skins(
             self, steam_skins_info: List[ParsedSteamSkinDTO], skin_dto: SkinRequestDTO
@@ -53,7 +56,10 @@ class SteamMarketSkinDataRetriever:
         skin_price = SteamMarketSkinDataHandler.get_price(steam_skin_info)
         return SteamSkinResponseDTO(skin_info['full_item_name'], skin_price, buy_link, skin_info['floatvalue'])
 
-    async def _find_skin_info(self, inspect_link: str):
+    @staticmethod
+    async def _find_skin_info(inspect_link: str):
         link = 'https://api.csfloat.com/?url=' + inspect_link
-        response = await self._request_executor.get_response_json(link, headers={'Origin': 'https://csfloat.com'})
-        return response['iteminfo']
+        async with aiohttp.ClientSession() as session:
+            async with session.get(link, headers={'Origin': 'https://csfloat.com'}) as response:
+                response_json = await response.json()
+                return response_json['iteminfo']

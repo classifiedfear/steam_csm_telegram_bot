@@ -5,9 +5,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import URL
 
-from src.db import TGQueries
-from src.db import BotDatabase, Base
-from src.db import DatabaseSkinFiller
+from src.database_app import TGQueries
+from src.database_app import BotDatabase, Base
+from src.database_app import DatabaseSkinFiller
 
 
 @pytest.fixture(scope="module")

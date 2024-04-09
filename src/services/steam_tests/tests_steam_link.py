@@ -1,8 +1,8 @@
 import pytest
 
 from src.misc.constants import tests_const
-from src.misc.dto import SkinRequestDTO
-from src.services.steam import ApiSteamLinkCreator
+from src.services.misc.dto import SkinRequestDTO
+from src.services.steam.links.api_steam_market_skin_data_link import ApiSteamMarketSkinDataLink
 from src.services.steam.links.steam_market_skin_data_link import SteamMarketSkinDataLink
 
 
@@ -26,6 +26,6 @@ def test_should_create_link_for_steam(skin_dto, expected):
     )
 )
 def test_should_create_link_for_steam_api(skin_dto, expected):
-    result = ApiSteamLinkCreator.create(skin_dto, count=100)
+    result = ApiSteamMarketSkinDataLink.create(skin_dto, count=100)
     assert result == expected
 

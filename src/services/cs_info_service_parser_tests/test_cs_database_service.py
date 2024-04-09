@@ -2,7 +2,6 @@ import pytest
 import pytest_unordered
 
 from src.services.cs_skins_data_retriever.cs_skin_data_retriever import CsInfoService
-from src.services.misc.common_request_executor import CommonRequestExecutor
 
 
 QUALITIES_PARAMETRIZE = (
@@ -48,8 +47,7 @@ SKINS_PARAMETRIZE = (
 
 @pytest.fixture
 def retriever() -> CsInfoService:
-    common_request_executor = CommonRequestExecutor()
-    service = CsInfoService(common_request_executor)
+    service = CsInfoService()
     return service
 
 

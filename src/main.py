@@ -11,14 +11,13 @@ from apscheduler.datastores.sqlalchemy import SQLAlchemyDataStore
 
 from redis import asyncio as aioredis
 
-from src.db.bot_database import BotDatabase, Base
+from src.database_app.database.context.bot_database_context import BotDatabaseContext
 from src.redis_controller import RedisController
 from src.telegram_bot_app import handlers
 from src.telegram_bot_app.keyboard.keyboard_utils import KeyboardCreator
 from src.telegram_bot_app.keyboard.keyboards import Keyboards
 from src.telegram_bot_app.midlewares.register_check import RegisterCheck
 from src.telegram_bot_app.resources.constants import buttons_const
-from src.db.tables import skins_queries, users_queries
 from src.test_db import BotDatabase
 def create_test_db():
     url = (
@@ -26,7 +25,7 @@ def create_test_db():
         f'{os.getenv('postgres_user')}:{os.getenv('postgres_password')}@{os.getenv('host')}:'
         f'{os.getenv('postgres_port')}/{os.getenv('postgres_db_name')}'
     )
-    return BotDatabase(url)
+    return BotDatabaseContext(url)
 
 class Application:
     def __init__(self, database: BotDatabase, keyboard: Keyboards) -> None:

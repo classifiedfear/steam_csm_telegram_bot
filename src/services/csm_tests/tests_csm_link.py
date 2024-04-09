@@ -3,7 +3,7 @@ import pytest
 from src.services.csm.links.csm_market_skin_asset_id_link import CsmMarketSkinAssetIdLink
 from src.services.csm.links.csm_market_skin_data_link import CsmMarketSkinDataLink
 from src.misc.constants import tests_const
-from src.misc.dto import SkinRequestDTO
+from src.services.misc.dto import SkinRequestDTO
 
 
 @pytest.mark.parametrize(

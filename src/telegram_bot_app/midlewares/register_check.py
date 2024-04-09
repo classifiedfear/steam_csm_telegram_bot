@@ -3,14 +3,12 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 
-from src.db.bot_database import BotDatabase
+from src.database_app.database.context.bot_database_context import BotDatabaseContext
 from src.redis_controller import RedisController
-
-from src.db.tables import users_queries
 
 
 class RegisterCheck(BaseMiddleware):
-    def __init__(self, redis_controller: RedisController, database: BotDatabase) -> None:
+    def __init__(self, redis_controller: RedisController, database: BotDatabaseContext) -> None:
         super().__init__()
         self._redis_controller = redis_controller
         self._database = database
