@@ -80,7 +80,7 @@ class CsmSteamMatchingSkinFinder:
     @staticmethod
     def _get_matched_steam_skins_by_float_if_exists(csm_skin, steam_skins):
         csm_float = Decimal(csm_skin.skin_float) * 1
-        return steam_skins.get(csm_float)
+        return steam_skins.get_by_id(csm_float)
 
     def _get_csm_steam_matched_by_percent(self, csm_skin, matched_by_float_steam_skins) -> List[CsmSteamMatchedSkin]:
         return [

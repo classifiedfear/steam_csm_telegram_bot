@@ -58,5 +58,5 @@ class DbUpdater:
         async with aiohttp.ClientSession() as session:
             bytes_db_dto = pickle.dumps(db_dto)
             compressed_db_dto = brotli.compress(bytes_db_dto)
-            async with session.post('http://127.0.0.1:8000/update_db', data=compressed_db_dto) as response:
+            async with session.post('http://127.0.0.1:8000/services/update_db', data=compressed_db_dto) as response:
                 assert response.status == 200

@@ -13,7 +13,7 @@ class CsmMarketSkinAssetIdParser:
     def _find_asset_id_list(response: Dict[str, Any]) -> List[int]:
         asset_id_list = []
         for item in response['items']:
-            if (overpay := item.get('overpay')) and (overpay.get('float')):
+            if (overpay := item.get_by_id('overpay')) and (overpay.get_by_id('float')):
                 asset_id_list.append(item['assetId'])
         return asset_id_list
 

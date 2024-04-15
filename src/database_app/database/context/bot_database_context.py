@@ -23,19 +23,19 @@ class BotDatabaseContext:
         await self._session.aclose()
 
     def get_weapon_table(self) -> WeaponTable:
-        return WeaponTable(self._db_engine, self._session)
+        return WeaponTable(self._session)
 
     def get_skin_table(self) -> SkinTable:
-        return SkinTable(self._db_engine, self._session)
+        return SkinTable(self._session)
 
     def get_quality_table(self) -> QualityTable:
-        return QualityTable(self._db_engine, self._session)
+        return QualityTable(self._session)
 
     def get_user_table(self) -> UserTable:
-        return UserTable(self._db_engine, self._session)
+        return UserTable(self._session)
 
     def get_weapon_skin_quality_table(self) -> WeaponSkinQualityTable:
-        return WeaponSkinQualityTable(self._db_engine, self._session)
+        return WeaponSkinQualityTable(self._session)
 
 
 

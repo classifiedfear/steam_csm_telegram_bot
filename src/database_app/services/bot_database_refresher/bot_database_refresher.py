@@ -2,16 +2,11 @@ import pickle
 import typing
 from collections import namedtuple
 import brotli
+from dataclasses import asdict
+
 from src.database_app.database.context.bot_database_context import BotDatabaseContext
-from src.database_app.database.models import skin_models
-from src.database_app.database.tables.skin_tables.quality_table import QualityTable
-from src.database_app.database.tables.skin_tables.skin_table import SkinTable
-from src.database_app.database.tables.skin_tables.weapon_table import WeaponTable
-from src.scheduler_tasks.db_data_updater.dto.quality_dto import QualityDTO
-from src.scheduler_tasks.db_data_updater.dto.received_data_from_tree_dto import ReceivedDataFromTreeDTO
-from src.scheduler_tasks.db_data_updater.dto.relation_dto import RelationDTO
-from src.scheduler_tasks.db_data_updater.dto.skin_dto import SkinDTO
-from src.scheduler_tasks.db_data_updater.dto.weapon_dto import WeaponDTO
+from src.database_app.database.tables.skin_tables import WeaponTable, SkinTable, QualityTable
+from src.scheduler_tasks.db_data_updater.dto import ReceivedDataFromTreeDTO, WeaponDTO, SkinDTO, QualityDTO, RelationDTO
 
 
 class BotDatabaseRefresher:
@@ -37,43 +32,57 @@ class BotDatabaseRefresher:
         await self._update_relations(db_dto.relations)
 
     async def _update_weapons(self, weapons: typing.List[WeaponDTO]):
-        weapons_dto_to_create, weapons_to_delete = await self._get_items_dto_to_create_and_names_to_delete(
+        weapons_dto_to_create, weapons_names_to_delete = await self._get_items_dto_to_create_and_names_to_delete(
             weapons, self._weapon_table
         )
-        weapon_models_to_create = [skin_models.Weapon(name=item.name) for item in weapons_dto_to_create.values()]
-        if weapons_to_delete:
-            await self._weapon_table.delete_many_by_name(weapons_to_delete)
-        if weapon_models_to_create:
-            await self._weapon_table.create_many(weapon_models_to_create)
+        if weapons_names_to_delete or weapons_dto_to_create:
+            if weapons_names_to_delete:
+                await self._weapon_table.delete_many_by_name(weapons_names_to_delete)
 
-        self._correct_ids_for_items_dto_by_models(weapons_dto_to_create, weapon_models_to_create)
+            weapon_data_to_create = [
+                asdict(item) for item in weapons_dto_to_create.values()
+               ]
+
+            if weapon_data_to_create:
+                await self._weapon_table.create_many(weapon_data_to_create)
+
+            await self._weapon_table.save_changes()
+
+            self._correct_ids_for_items_dto_by_models(weapons_dto_to_create, weapon_data_to_create)
 
     async def _update_skins(self, skins: typing.List[SkinDTO]):
         skins_dto_to_create, skin_names_to_delete = await self._get_items_dto_to_create_and_names_to_delete(
             skins, self._skin_table
         )
-        skin_models_to_create = [
-            skin_models.Skin(name=item.name, stattrak_existence=item.stattrak_existence)
-            for item in skins_dto_to_create.values()
-        ]
-        if skin_names_to_delete:
-            await self._skin_table.delete_many_by_name(skin_names_to_delete)
-        if skin_models_to_create:
-            await self._skin_table.create_many(skin_models_to_create)
+        if skin_names_to_delete or skins_dto_to_create:
+            if skin_names_to_delete:
+                await self._skin_table.delete_many_by_name(skin_names_to_delete)
 
-        self._correct_ids_for_items_dto_by_models(skins_dto_to_create, skin_models_to_create)
+            skin_models_to_create = [asdict(item) for item in skins_dto_to_create.values()]
+
+            if skin_models_to_create:
+                await self._skin_table.create_many(skin_models_to_create)
+
+            await self._skin_table.save_changes()
+
+            self._correct_ids_for_items_dto_by_models(skins_dto_to_create, skin_models_to_create)
 
     async def _update_qualities(self, qualities: typing.List[QualityDTO]):
         qualities_dto_to_create, quality_names_to_delete = await self._get_items_dto_to_create_and_names_to_delete(
             qualities, self._quality_table
         )
-        quality_model_to_create = [skin_models.Quality(name=item.name) for item in qualities_dto_to_create.values()]
-        if quality_names_to_delete:
-            await self._quality_table.delete_many_by_name(quality_names_to_delete)
-        if qualities_dto_to_create:
-            await self._quality_table.create_many(quality_model_to_create)
+        if quality_names_to_delete or qualities_dto_to_create:
+            if quality_names_to_delete:
+                await self._quality_table.delete_many_by_name(quality_names_to_delete)
 
-        self._correct_ids_for_items_dto_by_models(qualities_dto_to_create, quality_model_to_create)
+            quality_model_to_create = [asdict(item) for item in qualities_dto_to_create.values()]
+
+            if qualities_dto_to_create:
+                await self._quality_table.create_many(quality_model_to_create)
+
+            await self._quality_table.save_changes()
+
+            self._correct_ids_for_items_dto_by_models(qualities_dto_to_create, quality_model_to_create)
 
     @staticmethod
     async def _get_items_dto_to_create_and_names_to_delete(
@@ -96,18 +105,16 @@ class BotDatabaseRefresher:
 
     async def _update_relations(self, relations: typing.List[RelationDTO]):
         ids_relations_to_create, ids_relations_to_delete = await self._get_ids_relations_to_create_and_delete(relations)
-        wsq_model_relations_to_create = [
-            skin_models.WeaponSkinQuality(
-                weapon_id=relation.weapon_id, skin_id=relation.skin_id, quality_id=relation.quality_id
-            )
-            for relation in ids_relations_to_create
-        ]
+        if ids_relations_to_delete or ids_relations_to_create:
+            if ids_relations_to_delete:
+                await self._relations_table.delete_many_by_id(ids_relations_to_delete)
 
-        if ids_relations_to_delete:
-            await self._relations_table.delete_many_by_id(ids_relations_to_delete)
+            wsq_model_relations_to_create = [relation._asdict() for relation in ids_relations_to_create]
 
-        if wsq_model_relations_to_create:
-            await self._relations_table.create_many(wsq_model_relations_to_create)
+            if wsq_model_relations_to_create:
+                await self._relations_table.create_many(wsq_model_relations_to_create)
+
+            await self._relations_table.save_changes()
 
     async def _get_ids_relations_to_create_and_delete(self, relations: typing.List[RelationDTO]):
         relation_tuple = namedtuple('Relation', ['weapon_id', 'skin_id', 'quality_id'])

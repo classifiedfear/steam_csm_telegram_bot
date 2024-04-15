@@ -78,13 +78,13 @@ class MsgParser:
                 msg_split.remove(item)
             elif item in [data.lower() for data in settings.Quality.ENG.value]:
                 quality = item
-                self._user_weapon_msg.delete(item)
+                self._user_weapon_msg.delete_by_id(item)
             elif item == 'stattrak':
-                self._user_weapon_msg.delete(item)
+                self._user_weapon_msg.delete_by_id(item)
                 stattrak = True
             else:
                 skin = item
-                self._user_weapon_msg.delete(item)
+                self._user_weapon_msg.delete_by_id(item)
 
         return weapon, skin, quality, stattrak
 

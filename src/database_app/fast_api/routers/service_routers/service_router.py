@@ -6,13 +6,13 @@ from src.database_app.database.context.bot_database_context import BotDatabaseCo
 
 
 update_db_router = fastapi.APIRouter(
-    prefix="/update_db",
-    tags=["update_db"],
+    prefix="/services",
+    tags=["services"],
     dependencies=[fastapi.Depends(database.get_db_context)]
 )
 
 
-@update_db_router.post("")
+@update_db_router.post("/update_db")
 async def update_db(request: fastapi.Request, context: BotDatabaseContext = fastapi.Depends(database.get_db_context)):
     db_service = BotDatabaseRefresher(context)
     await db_service.refresh(await request.body())
